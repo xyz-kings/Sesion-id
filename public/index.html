@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Session Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
+        }
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .card-header {
+            background: linear-gradient(90deg, #25D366, #128C7E);
+            color: white;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 25px;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #25D366, #128C7E);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #1da851, #0d735d);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .pairing-code {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #25D366;
+            text-align: center;
+            letter-spacing: 10px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 3px dashed #25D366;
+            margin: 20px 0;
+        }
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .status-connected {
+            background-color: #25D366;
+            box-shadow: 0 0 10px #25D366;
+        }
+        .status-disconnected {
+            background-color: #dc3545;
+        }
+        .status-connecting {
+            background-color: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .step {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-left: 4px solid #25D366;
+            background: #f8f9fa;
+            border-radius: 0 10px 10px 0;
+        }
+        .download-btn {
+            font-size: 1.2rem;
+            padding: 15px 40px;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header text-center">
+                <h1 class="card-title mb-0">
+                    <i class="bi bi-whatsapp"></i> WhatsApp Session Generator
+                </h1>
+                <p class="mb-0">Dapatkan Session ID untuk bot WhatsApp dengan mudah</p>
+            </div>
+            
+            <div class="card-body p-4">
+                <!-- Step 1: Input Nomor -->
+                <div id="step1" class="step">
+                    <h4><i class="bi bi-1-circle"></i> Masukkan Nomor WhatsApp</h4>
+                    <p class="text-muted">Masukkan nomor WhatsApp yang akan digunakan (tanpa + dan spasi)</p>
+                    
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-8">
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">+</span>
+                                <input type="tel" 
+                                       id="phoneNumber" 
+                                       class="form-control" 
+                                       placeholder="Contoh: 6281234567890" 
+                                       maxlength="15"
+                                       pattern="[0-9]{10,15}">
+                            </div>
+                            <div class="form-text">
+                                Gunakan format internasional tanpa + (62 untuk Indonesia)
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <button id="startBtn" class="btn btn-primary btn-lg w-100">
+                                <i class="bi bi-play-circle"></i> Generate Pairing Code
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Pairing Code -->
+                <div id="step2" class="step" style="display: none;">
+                    <h4><i class="bi bi-2-circle"></i> Pairing Code</h4>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Kode ini berlaku selama 5 menit
+                    </div>
+                    
+                    <div class="pairing-code" id="pairingCodeDisplay">
+                        MEMUAT...
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <h5><i class="bi bi-phone"></i> Cara Menggunakan:</h5>
+                        <ol class="mb-0">
+                            <li>Buka WhatsApp di ponsel Anda</li>
+                            <li>Ketuk Menu (tiga titik) → <strong>Linked Devices</strong></li>
+                            <li>Ketuk <strong>'Link a Device'</strong></li>
+                            <li>Masukkan 6-digit kode di atas</li>
+                            <li>Tunggu hingga terkoneksi</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <button id="verifyBtn" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Sudah Memasukkan Kode
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Koneksi Status -->
+                <div id="step3" class="step" style="display: none;">
+                    <h4><i class="bi bi-3-circle"></i> Status Koneksi</h4>
+                    
+                    <div class="text-center mb-4">
+                        <div id="statusIndicator" class="status-indicator status-connecting"></div>
+                        <span id="statusText" class="h5">Menghubungkan ke WhatsApp...</span>
+                    </div>
+                    
+                    <div id="connectionDetails" style="display: none;">
+                        <div class="alert alert-success">
+                            <h5><i class="bi bi-check-circle-fill"></i> Berhasil Terkoneksi!</h5>
+                            <p id="connectedNumber">Nomor: Sedang memuat...</p>
+                        </div>
+                    </div>
+                    
+                    <div id="qrCodeContainer" class="text-center" style="display: none;">
+                        <h5>Atau scan QR Code:</h5>
+                        <div id="qrCode" class="d-inline-block p-3 bg-white border rounded"></div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Download Session -->
+                <div id="step4" class="step" style="display: none;">
+                    <h4><i class="bi bi-4-circle"></i> Download Session ID</h4>
+                    
+                    <div class="alert alert-success">
+                        <i class="bi bi-shield-check"></i> Session ID telah siap untuk diunduh!
+                        <br><small>File JSON ini berisi kredensial untuk mengakses WhatsApp Web.</small>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button id="downloadBtn" class="btn btn-primary btn-lg download-btn">
+                            <i class="bi bi-download"></i> Download Session ID (JSON)
+                        </button>
+                        <p class="mt-3 text-muted">
+                            <i class="bi bi-exclamation-triangle"></i> 
+                            Simpan file ini di tempat yang aman dan jangan bagikan ke siapapun!
+                        </p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h5><i class="bi bi-code-slash"></i> Cara Menggunakan Session ID:</h5>
+                        <div class="bg-dark text-light p-3 rounded">
+                            <code style="color: #fff;">
+                                // Contoh penggunaan dengan baileys<br>
+                                const session = require('./session.json');<br>
+                                const { makeWASocket } = require('@whiskeysockets/baileys');<br><br>
+                                
+                                const sock = makeWASocket({<br>
+                                &nbsp;&nbsp;auth: session.credentials,<br>
+                                &nbsp;&nbsp;// ... konfigurasi lainnya<br>
+                                });
+                            </code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Session Info -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h5><i class="bi bi-lightbulb"></i> Informasi Penting:</h5>
+                    <ul class="mb-0">
+                        <li>Session ID akan otomatis kadaluarsa setelah 1 jam</li>
+                        <li>Untuk keamanan, hapus session setelah selesai digunakan</li>
+                        <li>Kode ini menggunakan library Baileys yang resmi</li>
+                        <li>Tidak ada data yang disimpan di server kami</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card-footer text-center text-muted">
+                <small>
+                    <i class="bi bi-shield-lock"></i> 
+                    Sistem ini 100% aman dan berjalan di browser Anda.
+                    <br>Dikembangkan dengan ❤️ menggunakan teknologi terbaru
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- Main Application Script -->
+    <script>
+        let currentSessionId = null;
+        let socket = null;
+        let sessionInterval = null;
+
+        // DOM Elements
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const step4 = document.getElementById('step4');
+        const phoneNumberInput = document.getElementById('phoneNumber');
+        const startBtn = document.getElementById('startBtn');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const pairingCodeDisplay = document.getElementById('pairingCodeDisplay');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const connectionDetails = document.getElementById('connectionDetails');
+        const connectedNumber = document.getElementById('connectedNumber');
+        const qrCodeContainer = document.getElementById('qrCodeContainer');
+
+        // Event Listeners
+        startBtn.addEventListener('click', startSession);
+        verifyBtn.addEventListener('click', verifyPairingCode);
+        downloadBtn.addEventListener('click', downloadSession);
+
+        // Initialize Socket.io
+        function initSocket() {
+            socket = io();
+            
+            socket.on('connect', () => {
+                console.log('WebSocket connected');
+            });
+            
+            socket.on('qr_update', (data) => {
+                showQRCode(data.qr);
+            });
+            
+            socket.on('connection_status', (data) => {
+                updateConnectionStatus(data);
+            });
+            
+            socket.on('session_ready', (data) => {
+                showDownloadStep(data);
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('WebSocket disconnected');
+            });
+        }
+
+        // Start new session
+        async function startSession() {
+            const phoneNumber = phoneNumberInput.value.trim();
+            
+            if (!phoneNumber || !/^[0-9]{10,15}$/.test(phoneNumber)) {
+                alert('Masukkan nomor telepon yang valid (10-15 digit angka)');
+                return;
+            }
+            
+            startBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Memproses...';
+            startBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/session/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentSessionId = data.sessionId;
+                    
+                    // Show pairing code
+                    pairingCodeDisplay.textContent = data.pairingCode;
+                    step1.style.display = 'none';
+                    step2.style.display = 'block';
+                    
+                    // Join WebSocket room
+                    if (socket) {
+                        socket.emit('join_session', currentSessionId);
+                    }
+                    
+                    // Start checking session status
+                    startSessionMonitoring();
+                    
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat memulai session');
+            } finally {
+                startBtn.innerHTML = '<i class="bi bi-play-circle"></i> Generate Pairing Code';
+                startBtn.disabled = false;
+            }
+        }
+
+        // Verify pairing code
+        async function verifyPairingCode() {
+            if (!currentSessionId) return;
+            
+            verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifikasi...';
+            verifyBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/session/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pairingCode: pairingCodeDisplay.textContent,
+                        sessionId: currentSessionId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    step2.style.display = 'none';
+                    step3.style.display = 'block';
+                    initSocket();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat verifikasi');
+            } finally {
+                verifyBtn.innerHTML = '<i class="bi bi-check-circle"></i> Sudah Memasukkan Kode';
+                verifyBtn.disabled = false;
+            }
+        }
+
+        // Start session monitoring
+        function startSessionMonitoring() {
+            if (sessionInterval) clearInterval(sessionInterval);
+            
+            sessionInterval = setInterval(async () => {
+                if (!currentSessionId) return;
+                
+                try {
+                    const response = await fetch(`/api/session/${currentSessionId}/status`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (data.isConnected && data.hasSessionData) {
+                            clearInterval(sessionInterval);
+                            // Session sudah siap, tunggu event dari WebSocket
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking status:', error);
+                }
+            }, 3000);
+        }
+
+        // Update connection status
+        function updateConnectionStatus(data) {
+            if (data.status === 'connected') {
+                statusIndicator.className = 'status-indicator status-connected';
+                statusText.textContent = 'Terhubung ke WhatsApp';
+                
+                connectionDetails.style.display = 'block';
+                connectedNumber.textContent = `Nomor: ${data.phoneNumber}`;
+                
+                qrCodeContainer.style.display = 'none';
+                
+            } else if (data.status === 'disconnected') {
+                statusIndicator.className = 'status-indicator status-disconnected';
+                statusText.textContent = 'Terputus: ' + (data.reason || 'Unknown error');
+            }
+        }
+
+        // Show QR Code
+        function showQRCode(qrData) {
+            qrCodeContainer.style.display = 'block';
+            QRCode.toCanvas(document.getElementById('qrCode'), qrData, {
+                width: 200,
+                height: 200,
+                margin: 1
+            }, function(error) {
+                if (error) console.error('QR Code error:', error);
+            });
+        }
+
+        // Show download step
+        function showDownloadStep(data) {
+            step3.style.display = 'none';
+            step4.style.display = 'block';
+            
+            // Update download button
+            downloadBtn.onclick = () => {
+                window.location.href = data.downloadUrl;
+            };
+        }
+
+        // Download session
+        function downloadSession() {
+            if (currentSessionId) {
+                window.location.href = `/api/download/${currentSessionId}`;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Auto-format phone number input
+            phoneNumberInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/\D/g, '');
+            });
+            
+            // Check if there's an existing session in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session');
+            
+            if (sessionId) {
+                // Load existing session (for bookmarking)
+                currentSessionId = sessionId;
+                step1.style.display = 'none';
+                step3.style.display = 'block';
+                initSocket();
+                startSessionMonitoring();
+            }
+        });
+    </script>
+</body>
+</html>
